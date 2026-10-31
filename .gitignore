@@ -1,0 +1,11 @@
+# build outputs
+memlat
+memlat.exe
+*.o
+# python
+.venv/
+__pycache__/
+# generated
+results/*.png
+*.zip
+locked_done.txt

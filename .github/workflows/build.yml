@@ -1,0 +1,32 @@
+name: build
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [macos-14, windows-latest]   # macos-14 = Apple Silicon (arm64)
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: build & quick run (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          clang -O2 -Wall -o memlat memlat.c
+          ./memlat p 4 64 5 3 | tail -n 4
+          ./memlat e 4 64 5 3 | tail -n 4
+      - name: build & quick run (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          clang -O2 -Wall -o memlat.exe memlat.c -ladvapi32
+          ./memlat.exe 0 4 64 5 3 | tail -n 4
+      - name: plot sample results
+        run: |
+          pip install numpy matplotlib
+          python -c "import bench" && python plot.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charts-${{ matrix.os }}
+          path: results/*.png
